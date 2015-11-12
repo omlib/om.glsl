@@ -2,6 +2,19 @@ package om.glsl;
 
 using StringTools;
 
+/*
+@:enum abstract Literal(String) from String to String {
+
+    var precision = 'precision';
+    var highp = 'highp';
+
+    public static function getConstructorsValues():Map<String,String> return [
+     'precision' => 'precision',
+     'highp' => 'highp'
+     ];
+}
+ */
+
 enum TokenType {
     block_comment;
     line_comment;
@@ -68,14 +81,13 @@ class Lexer {
     var col : Int;
     var tokens : Array<Token>;
 
-    public function new() {
-    }
+    public function new() {}
 
     public function tokenize( src : String ) : Array<Token> {
 
-        input = src;
+        input = src; //TODO
         i = start = total = col = 0;
-        line = 0;
+        line = 1;
         len = src.length;
         mode = MNormal;
         content = [];
@@ -104,7 +116,7 @@ class Lexer {
             }
 
             if( lastIndex != i ) {
-                switch input.charAt(i) {
+                switch input.charAt(lastIndex) {
                 case '\n':
                     col = 0;
                     ++line;
@@ -154,18 +166,20 @@ class Lexer {
 
     function readWhitespace() : Int {
         if( ~/[^\s]/g.match(c) ) {
-            token( content.join( '' ) );
-            mode = MNormal;
-            return i;
+            //token( content.join( '' ) );
+            //mode = MNormal;
+            //return i;
+            return addToken( MNormal );
         }
         return nextChar();
     }
 
     function readPreprocessor() : Int {
         if( c == '\n' && last != '\\' ) {
-            token( content.join( '' ) );
-            mode = MNormal;
-            return i;
+            //token( content.join( '' ) );
+            //mode = MNormal;
+            //return i;
+            return addToken( MNormal );
         }
         return nextChar();
     }
@@ -173,9 +187,10 @@ class Lexer {
     function readBlockComment() : Int {
         if( c == '/' && last == '*' ) {
             content.push( c );
-            token( content.join( '' ) );
-            mode = MNormal;
-            return i + 1;
+            //token( content.join( '' ) );
+            //mode = MNormal;
+            //return i + 1;
+            return addToken( MNormal, i+1 );
         }
         return nextChar();
     }
@@ -205,18 +220,20 @@ class Lexer {
         }
 
         if( ~/[^\d]/.match(c) ) {
-            token(content.join('') );
-            mode = MNormal;
-            return i;
+            //token(content.join('') );
+            //mode = MNormal;
+            //return i;
+            return addToken( MNormal );
         }
         return nextChar();
     }
 
     function readHex() : Int {
         if( ~/[^a-fA-F0-9]/.match(c) ) {
-            token( content.join('') );
-            mode = MNormal;
-            return i;
+            //token( content.join('') );
+            //mode = MNormal;
+            //return i;
+            return addToken( MNormal );
         }
         return nextChar();
     }
@@ -233,9 +250,10 @@ class Lexer {
             return i + 1;
         }
         if( ~/[^\d]/.match(c) ) {
-            token( content.join( '' ) );
-            mode = MNormal;
-            return i;
+            //token( content.join( '' ) );
+            //mode = MNormal;
+            //return i;
+            return addToken( MNormal );
         }
         return nextChar();
     }
@@ -262,9 +280,10 @@ class Lexer {
             if( content.length > 0 ) {
                 while( determine_operator( content ) > 0 ) {}
             }
-            token(c);
-            mode = MNormal;
-            return i + 1;
+            //token(c);
+            //mode = MNormal;
+            //return i + 1;
+            return addToken( c, MNormal, i+1 );
         }
         var is_composite_operator = content.length == 2 && c != '=';
         if( ~/[\w_\d\s]/.match(c) || is_composite_operator ) {
@@ -286,16 +305,18 @@ class Lexer {
                 mode = MIdent;
             }
             //token( content.join( '' ) );
-            token( contentstr );
-            mode = MNormal;
-            return i;
+            //token( contentstr );
+            //mode = MNormal;
+            //return i;
+            return addToken( contentstr, MNormal );
         }
         return nextChar();
     }
 
     function determine_operator( buf : Array<String> ) {
 
-        var j, idx = 0;
+        var j = 0;
+        var idx = 0;
         var res : String = null;
 
         do {
@@ -324,6 +345,13 @@ class Lexer {
         content.push(c);
         last = c;
         return i + 1;
+    }
+
+    function addToken( ?str : String, nextMode : Mode, ?pos : Int ) : Int {
+        if( str == null ) str = content.join('');
+        token( str );
+        this.mode = nextMode;
+        return (pos == null) ? i : pos;
     }
 
     function token( data : String ) {
