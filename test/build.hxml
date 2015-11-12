@@ -1,0 +1,6 @@
+-js unit.js
+-main Unit
+-cp ../src
+-lib hxnodejs
+-debug
+-dce full
