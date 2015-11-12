@@ -158,9 +158,7 @@ class Lexer {
             mode = MNormal;
             return i;
         }
-        content.push(c);
-        last = c;
-        return i + 1;
+        return nextChar();
     }
 
     function readPreprocessor() : Int {
@@ -169,9 +167,7 @@ class Lexer {
             mode = MNormal;
             return i;
         }
-        content.push( c );
-        last = c;
-        return i + 1;
+        return nextChar();
     }
 
     function readBlockComment() : Int {
@@ -181,9 +177,7 @@ class Lexer {
             mode = MNormal;
             return i + 1;
         }
-        content.push(c);
-        last = c;
-        return i + 1;
+        return nextChar();
     }
 
     function readLineComment() : Int {
@@ -215,9 +209,7 @@ class Lexer {
             mode = MNormal;
             return i;
         }
-        content.push(c);
-        last = c;
-        return i + 1;
+        return nextChar();
     }
 
     function readHex() : Int {
@@ -226,9 +218,7 @@ class Lexer {
             mode = MNormal;
             return i;
         }
-        content.push(c);
-        last = c;
-        return i + 1;
+        return nextChar();
     }
 
     function readFloat() : Int {
@@ -247,9 +237,7 @@ class Lexer {
             mode = MNormal;
             return i;
         }
-        content.push(c);
-        last = c;
-        return i + 1;
+        return nextChar();
     }
 
     function readOperator() : Int {
@@ -284,9 +272,7 @@ class Lexer {
             mode = MNormal;
             return i;
         }
-        content.push(c);
-        last = c;
-        return i + 1;
+        return nextChar();
     }
 
     function readToken() : Int {
@@ -304,9 +290,7 @@ class Lexer {
             mode = MNormal;
             return i;
         }
-        content.push(c);
-        last = c;
-        return i + 1;
+        return nextChar();
     }
 
     function determine_operator( buf : Array<String> ) {
@@ -334,6 +318,12 @@ class Lexer {
         } while(true);
 
         return 0;
+    }
+
+    function nextChar() : Int {
+        content.push(c);
+        last = c;
+        return i + 1;
     }
 
     function token( data : String ) {
