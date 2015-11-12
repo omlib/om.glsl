@@ -1,5 +1,7 @@
 package om.glsl;
 
+using StringTools;
+
 enum TokenType {
     block_comment;
     line_comment;
@@ -21,6 +23,14 @@ typedef Token = {
     var position : Int;
     var line : Int;
     var column : Int;
+}
+
+typedef PreprocessorStatement = {
+    var name : String;
+    @:optional var args : Array<String>;
+    var value : String;
+    //var index : Int;
+    //var token : Int;
 }
 
 private enum Mode {
@@ -65,13 +75,13 @@ class Lexer {
 
         input = src;
         i = start = total = col = 0;
-        line = 1;
+        line = 0;
         len = src.length;
         mode = MNormal;
         content = [];
         tokens = [];
 
-        var lastIndex : Int = null;
+        var lastIndex = 0;
 
         while( i < len ) {
 
@@ -362,5 +372,51 @@ class Lexer {
         var src = new StringBuf();
         for( token in tokens ) src.add( token.data );
         return src.toString();
+    }
+
+    public static function parsePreprocessor( str : String ) : PreprocessorStatement {
+
+        var split = ~/\s+/.split( str.trim() );
+
+        if( split[0] != '#define' )
+            return throw 'invalid preprocessor statement';
+
+        if( split[1].indexOf( '(' ) == -1 ) {
+            var name : String = null;
+            var value : String = null;
+            var expr = ~/^([a-zA-Z_]+)(\s+(.+))$/;
+            if( expr.match( split[1]) ) {
+                name = expr.matched(1);
+                value = expr.matched(3);
+            } else {
+                name = split[1];
+                value = split.slice(2).join(' ').trim();
+            }
+            return {
+                name: name,
+                args: null,
+                value: value
+            };
+
+        } else {
+            var content = split.slice(1).join(' ').trim();
+            var argsStart : Int = null;
+            var argsEnd : Int = null;
+            for( i in 0...content.length ) {
+                var char = content.charAt(i);
+                switch char {
+                case '(': argsStart = i;
+                case ')': argsEnd = i;
+                case ' ','\t': if( argsEnd != null )
+                    break;
+                }
+            }
+            var args = content.substring( argsStart + 1, argsEnd ).split(',');
+            return {
+                name: content.substr( 0, argsStart ),
+                value: content.substr( argsEnd+1 ).trim(),
+                args: args.map( StringTools.trim ),
+            }
+        }
     }
 }
