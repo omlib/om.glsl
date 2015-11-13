@@ -38,14 +38,6 @@ typedef Token = {
     var column : Int;
 }
 
-typedef PreprocessorStatement = {
-    var name : String;
-    @:optional var args : Array<String>;
-    var value : String;
-    //var index : Int;
-    //var token : Int;
-}
-
 private enum Mode {
     MNormal;
     MPreprocessor;
@@ -83,7 +75,7 @@ class Lexer {
 
     public function new() {}
 
-    public function tokenize( src : String ) : Array<Token> {
+    public function write( src : String ) : Array<Token> {
 
         input = src; //TODO
         i = start = total = col = 0;
@@ -166,20 +158,14 @@ class Lexer {
 
     function readWhitespace() : Int {
         if( ~/[^\s]/g.match(c) ) {
-            //token( content.join( '' ) );
-            //mode = MNormal;
-            //return i;
-            return addToken( MNormal );
+            return addToken();
         }
         return nextChar();
     }
 
     function readPreprocessor() : Int {
         if( c == '\n' && last != '\\' ) {
-            //token( content.join( '' ) );
-            //mode = MNormal;
-            //return i;
-            return addToken( MNormal );
+            return addToken();
         }
         return nextChar();
     }
@@ -187,10 +173,7 @@ class Lexer {
     function readBlockComment() : Int {
         if( c == '/' && last == '*' ) {
             content.push( c );
-            //token( content.join( '' ) );
-            //mode = MNormal;
-            //return i + 1;
-            return addToken( MNormal, i+1 );
+            return addToken( i+1 );
         }
         return nextChar();
     }
@@ -220,20 +203,14 @@ class Lexer {
         }
 
         if( ~/[^\d]/.match(c) ) {
-            //token(content.join('') );
-            //mode = MNormal;
-            //return i;
-            return addToken( MNormal );
+            return addToken();
         }
         return nextChar();
     }
 
     function readHex() : Int {
         if( ~/[^a-fA-F0-9]/.match(c) ) {
-            //token( content.join('') );
-            //mode = MNormal;
-            //return i;
-            return addToken( MNormal );
+            return addToken();
         }
         return nextChar();
     }
@@ -250,9 +227,6 @@ class Lexer {
             return i + 1;
         }
         if( ~/[^\d]/.match(c) ) {
-            //token( content.join( '' ) );
-            //mode = MNormal;
-            //return i;
             return addToken( MNormal );
         }
         return nextChar();
@@ -280,9 +254,6 @@ class Lexer {
             if( content.length > 0 ) {
                 while( determine_operator( content ) > 0 ) {}
             }
-            //token(c);
-            //mode = MNormal;
-            //return i + 1;
             return addToken( c, MNormal, i+1 );
         }
         var is_composite_operator = content.length == 2 && c != '=';
@@ -304,11 +275,7 @@ class Lexer {
             } else {
                 mode = MIdent;
             }
-            //token( content.join( '' ) );
-            //token( contentstr );
-            //mode = MNormal;
-            //return i;
-            return addToken( contentstr, MNormal );
+            return addToken( contentstr );
         }
         return nextChar();
     }
@@ -347,8 +314,9 @@ class Lexer {
         return i + 1;
     }
 
-    function addToken( ?str : String, nextMode : Mode, ?pos : Int ) : Int {
+    function addToken( ?str : String, ?nextMode : Mode, ?pos : Int ) : Int {
         if( str == null ) str = content.join('');
+        if( nextMode == null ) nextMode = MNormal;
         token( str );
         this.mode = nextMode;
         return (pos == null) ? i : pos;
@@ -366,6 +334,8 @@ class Lexer {
         }
     }
 
+    ////////////////////////////////////////////////////////////////////////////
+
     static function getTokenType( mode : Mode ) : TokenType {
         return switch mode {
         case MBlockComment: block_comment;
@@ -382,59 +352,46 @@ class Lexer {
         }
     }
 
-    public static inline function fromSource( src : String ) : Array<Token> {
-        return new om.glsl.Lexer().tokenize( src );
+    public static inline function tokenize( src : String ) : Array<Token> {
+        return new om.glsl.Lexer().write( src );
     }
 
-    public static function toSource( tokens : Array<Token> ) : String {
+    // TODO noWhitespace
+    public static function toSource( tokens : Array<Token>, noWhitespace = false ) : String {
         var src = new StringBuf();
-        for( token in tokens ) src.add( token.data );
-        return src.toString();
-    }
-
-    public static function parsePreprocessor( str : String ) : PreprocessorStatement {
-
-        var split = ~/\s+/.split( str.trim() );
-
-        if( split[0] != '#define' )
-            return throw 'invalid preprocessor statement';
-
-        if( split[1].indexOf( '(' ) == -1 ) {
-            var name : String = null;
-            var value : String = null;
-            var expr = ~/^([a-zA-Z_]+)(\s+(.+))$/;
-            if( expr.match( split[1]) ) {
-                name = expr.matched(1);
-                value = expr.matched(3);
-            } else {
-                name = split[1];
-                value = split.slice(2).join(' ').trim();
-            }
-            return {
-                name: name,
-                args: null,
-                value: value
-            };
-
-        } else {
-            var content = split.slice(1).join(' ').trim();
-            var argsStart : Int = null;
-            var argsEnd : Int = null;
-            for( i in 0...content.length ) {
-                var char = content.charAt(i);
-                switch char {
-                case '(': argsStart = i;
-                case ')': argsEnd = i;
-                case ' ','\t': if( argsEnd != null )
-                    break;
+        var prev : Token = null;
+        for( token in tokens ) {
+            if( noWhitespace ) {
+                switch token.type {
+                case whitespace:
+                    src.add( token.data );
+                    //TODO remove whitespace
+                        /*
+                    if( token.data.length >= 2 ) {
+                        //src.add( '\n' );
+                        continue;
+                    } else {
+                        //if( prev != null && (prev.type == operator || prev.type == builtin || prev.type == ident ) )
+                        if( prev != null && prev.type == operator && (prev.data == ';') ) {
+                            switch prev.type {
+                            case builtin,ident,operator:
+                                continue;
+                            default:
+                                src.add( token.data );
+                            }
+                        } else
+                            src.add( token.data );
+                        src.add( token.data );
+                    }
+                    */
+                default:
+                    src.add( token.data );
                 }
+            } else {
+                src.add( token.data );
             }
-            var args = content.substring( argsStart + 1, argsEnd ).split(',');
-            return {
-                name: content.substr( 0, argsStart ),
-                value: content.substr( argsEnd+1 ).trim(),
-                args: args.map( StringTools.trim ),
-            }
+            prev = token;
         }
+        return src.toString();
     }
 }

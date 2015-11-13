@@ -1,6 +1,7 @@
 -js unit.js
 -main Unit
 -cp ../src
+-cp case
 -lib hxnodejs
 -debug
 -dce full
