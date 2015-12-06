@@ -2,6 +2,9 @@ package om.glsl;
 
 using StringTools;
 
+/**
+    GLSL preprocessor statement.
+*/
 class Preprocessor {
 
     public var name : String;
@@ -35,7 +38,7 @@ class Preprocessor {
         var split = ~/\s+/.split( str.trim() );
 
         if( split[0] != '#define' )
-            return throw 'invalid preprocessor statement';
+            return throw 'invalid preprocessor';
 
         if( split[1].indexOf( '(' ) == -1 ) {
             var name : String = null;
@@ -69,4 +72,10 @@ class Preprocessor {
             );
         }
     }
+
+    /*
+    public static function find( name : String ) : Preprocessor {
+
+    }
+    */
 }

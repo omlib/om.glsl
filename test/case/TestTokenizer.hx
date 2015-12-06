@@ -1,15 +1,15 @@
 
 import js.node.Fs;
-import om.glsl.Lexer;
+import om.glsl.Tokenizer;
 
-class TestLexer extends haxe.unit.TestCase {
+class TestTokenizer extends haxe.unit.TestCase {
 
 	public function test_tokenize_checkboard() {
 
 		var src = Fs.readFileSync( 'checkboard.frag' ).toString();
 
-        var lexer = new om.glsl.Lexer();
-        var tokens = lexer.write( src );
+        var tokenizer = new om.glsl.Tokenizer();
+        var tokens = tokenizer.write( src );
 
         //for( token in tokens ) trace(token);
         //trace( Lexer.toSource( tokens, true ) );
