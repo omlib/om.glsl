@@ -1,0 +1,14 @@
+{
+    "name": "om.glsl",
+    "version": "0.1.0",
+    "description": "GLSL helpers",
+    "tags": ["glsl","shader"],
+    "url": "https://github.com/tong/om.glsl",
+    "license": "GPL",
+    "contributors": ["tong"],
+    "releasenote": "See CHANGELOG.md",
+    "classPath" : "src/",
+    "dependencies": {
+        "om.core":""
+    }
+}

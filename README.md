@@ -1,4 +1,4 @@
 
-# Om.glsl
+# OM|GLSL
 
-Haxe GLSL lexer.
+Haxe GLSL tools.
