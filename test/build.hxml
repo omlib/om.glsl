@@ -1,7 +1,14 @@
--js unit.js
 -main Unit
 -cp ../src
 -cp case
+--each
+
+--next
+-js unit.js
+
+--next
+-js unit.node.js
 -lib hxnodejs
--debug
--dce full
+
+--next
+-neko unit.n

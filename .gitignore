@@ -1,3 +1,5 @@
-test/*.js*
-haxedoc.xml
-TODO*
+_*
+doc/
+examples/**.js*
+example/**.js*
+test/unit*

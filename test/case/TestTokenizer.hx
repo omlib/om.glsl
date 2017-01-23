@@ -1,12 +1,13 @@
 
-import js.node.Fs;
 import om.glsl.Tokenizer;
 
 class TestTokenizer extends haxe.unit.TestCase {
 
 	public function test_tokenize_checkboard() {
 
-		var src = Fs.readFileSync( 'checkboard.frag' ).toString();
+		#if nodejs
+
+		var src = js.node.Fs.readFileSync( 'checkboard.frag' ).toString();
 
         var tokenizer = new om.glsl.Tokenizer();
         var tokens = tokenizer.write( src );
@@ -38,6 +39,8 @@ class TestTokenizer extends haxe.unit.TestCase {
         assertEquals( 7, tokens[2].column );
 
 		//.....
+
+		#end
 	}
 
 	/*

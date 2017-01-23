@@ -1,11 +1,10 @@
 
-import js.node.Fs;
 import om.glsl.Preprocessor;
 
 class TestPreprocessor extends haxe.unit.TestCase {
 
 	public function test() {
-
+		
 		var src = '#define HELLO_WORLD';
 		var p = Preprocessor.parse( src );
 		assertEquals( 'HELLO_WORLD', p.name );
