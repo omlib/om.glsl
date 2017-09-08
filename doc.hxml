@@ -1,8 +1,10 @@
 --no-output
--cp src
+-lib om.glsl
 om.glsl.Tokenizer
 --macro keep('om.glsl.Tokenizer')
 --macro include('om.glsl.Tokenizer')
+-D doc
+-D doc-gen
 --each
 
 --next
